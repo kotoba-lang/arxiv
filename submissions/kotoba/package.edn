@@ -5,8 +5,8 @@
  :submission/source-dir "submissions/kotoba/source"
  :submission/source-archive "submissions/kotoba/build/kotoba-arxiv-source.tar.gz"
  :submission/pdf "submissions/kotoba/kotoba.pdf"
- :submission/primary-category "cs.DB"
- :submission/cross-lists ["cs.DC" "cs.CR"]
+ :submission/primary-category "cs.CL"
+ :submission/cross-lists ["cs.DB" "cs.DC" "cs.CR"]
  :submission/license :cc-by-4.0
  :submission/comments "System description. Source and interactive explainers at https://com-junkawasaki.github.io/kotoba/"
  :submission/final-submit-requires :human-approval}

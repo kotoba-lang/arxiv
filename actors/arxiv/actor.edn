@@ -25,6 +25,9 @@
   {:op :arxiv/validate-package
    :risk :read-only
    :skill :arxiv.validate-package}
+  {:op :arxiv/plan-submission
+   :risk :read-only
+   :skill :arxiv.plan-submission}
   {:op :arxiv/login
    :risk :external-auth
    :skill :arxiv.login}
@@ -42,4 +45,3 @@
    :risk :read-only
    :skill :arxiv.check-status}]
  :actor/yorishiro :yorishiro/arxiv}
-

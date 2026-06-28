@@ -17,6 +17,9 @@
     {:op :arxiv/validate-package
      :risk :read-only
      :skill :arxiv.validate-package}
+    {:op :arxiv/plan-submission
+     :risk :read-only
+     :skill :arxiv.plan-submission}
     {:op :arxiv/login
      :risk :external-auth
      :skill :arxiv.login}
@@ -41,7 +44,8 @@
    [{:route/id :local
      :route/kind :local
      :route/capabilities [:arxiv/advise-categories
-                          :arxiv/validate-package]
+                          :arxiv/validate-package
+                          :arxiv/plan-submission]
      :route/prefer 1}
     {:route/id :api
      :route/kind :api

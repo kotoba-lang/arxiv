@@ -5,5 +5,5 @@
   {:id :pending-human-final-submit :terminal? false}
   {:id :submitted :terminal? true}
   {:id :on-hold :terminal? false}
+  {:id :endorsement-hold :terminal? false}
   {:id :withdrawn :terminal? true}]}
-

@@ -8,7 +8,8 @@ Recommended categories:
 
 | Role | Category |
 |---|---|
-| Primary | `cs.DB` |
+| Primary | `cs.CL` |
+| Cross-list | `cs.DB` |
 | Cross-list | `cs.DC` |
 | Cross-list | `cs.CR` |
 
@@ -33,5 +34,10 @@ blocked by arXiv endorsement policy:
 
 `You are not endorsed for this archive.`
 
-Next action: request endorsement for the Computer Science archive/category before
-resuming submission.
+The current workflow uses `cs.CL` as the primary category because the account can
+advance through the start form there and the paper can be truthfully framed as
+accountable memory infrastructure for language agents.
+
+Next action: continue the draft workflow with `cs.CL`. If arXiv blocks a
+cross-list for endorsement, record the server message in `status.edn`, remove the
+blocked cross-list for the first submission, and request endorsement separately.

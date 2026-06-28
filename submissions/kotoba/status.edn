@@ -1,8 +1,13 @@
 {:submission/id :kotoba
- :submission/state :on-hold
- :submission/hold-reason :endorsement-required
- :submission/attempted-at "2026-06-28T22:22:00+09:00"
- :submission/attempted-url "https://arxiv.org/submit/7761862/start"
- :submission/attempted-primary-category "cs.DB"
- :submission/server-message "You are not endorsed for this archive."
- :submission/next-action :request-cs-db-endorsement}
+ :submission/state :draft
+ :submission/current-primary-category "cs.CL"
+ :submission/current-cross-lists ["cs.DB" "cs.DC" "cs.CR"]
+ :submission/attempts
+ [{:attempted-at "2026-06-28T22:22:00+09:00"
+   :attempted-url "https://arxiv.org/submit/7761862/start"
+   :attempted-primary-category "cs.DB"
+   :result :hold
+   :hold-reason :endorsement-required
+   :server-message "You are not endorsed for this archive."
+   :next-action :retry-with-endorsed-cs-cl}]
+ :submission/next-action :continue-draft-workflow}

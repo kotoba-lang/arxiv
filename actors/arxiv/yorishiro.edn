@@ -6,7 +6,8 @@
  [{:route/id :local
    :route/kind :local
    :route/capabilities [:arxiv/advise-categories
-                        :arxiv/validate-package]
+                        :arxiv/validate-package
+                        :arxiv/plan-submission]
    :route/prefer 1}
   {:route/id :api
    :route/kind :api

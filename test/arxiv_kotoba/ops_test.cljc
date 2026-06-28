@@ -41,8 +41,10 @@
                       {:available-surfaces #{:local}})]
     (is (= :ready (:status r)))
     (is (= :local (:route/id r)))
-    (is (= "cs.DB" (get-in r [:result :advice :primary])))
-    (is (= ["cs.DC" "cs.CR"] (get-in r [:result :advice :cross-lists])))))
+    (is (= "cs.CL" (get-in r [:result :advice :primary])))
+    (is (= ["cs.DB" "cs.DC" "cs.CR"] (get-in r [:result :advice :cross-lists])))
+    (is (= :endorsement-required
+           (get-in r [:result :endorsement-fallbacks 0 :hold-reason])))))
 
 (deftest kotoba-package-validates
   (let [r (ops/invoke {:op :arxiv/validate-package
@@ -51,7 +53,28 @@
     (is (= :ready (:status r)))
     (is (= :ok (get-in r [:result :status])))
     (is (= [] (get-in r [:result :errors])))
-    (is (= "cs.DB" (get-in r [:result :categories :primary])))))
+    (is (= "cs.CL" (get-in r [:result :categories :primary])))))
+
+(deftest kotoba-submission-plan-is-ready-for-cs-cl
+  (let [r (ops/invoke {:op :arxiv/plan-submission
+                       :package-edn "submissions/kotoba/package.edn"
+                       :status-edn "submissions/kotoba/status.edn"}
+                      {:available-surfaces #{:local}})]
+    (is (= :ready (:status r)))
+    (is (= :ready (get-in r [:result :status])))
+    (is (= :continue-draft-workflow (get-in r [:result :next-action])))
+    (is (= "cs.CL" (get-in r [:result :categories :primary])))))
+
+(deftest endorsement-hold-is-planned-as-hold
+  (let [r (ops/invoke {:op :arxiv/plan-submission
+                       :package-edn "submissions/kotoba/package.edn"
+                       :status-edn "test/fixtures/endorsement-hold-status.edn"}
+                      {:available-surfaces #{:local}})]
+    (is (= :ready (:status r)))
+    (is (= :hold (get-in r [:result :status])))
+    (is (= :endorsement-required (get-in r [:result :hold :reason])))
+    (is (= "cs.DB" (get-in r [:result :hold :attempted-category])))
+    (is (= :retry-with-endorsed-cs-cl (get-in r [:result :next-action])))))
 
 (deftest dialogue-does-not-execute
   (let [r (dialogue/respond {:text "Can you submit this paper?"})]

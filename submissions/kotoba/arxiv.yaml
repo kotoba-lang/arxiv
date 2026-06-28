@@ -9,8 +9,9 @@ authors:
   - name: Jun Kawasaki
     affiliation: com-junkawasaki / etzhayyim
 
-primary_category: cs.DB        # Databases
+primary_category: cs.CL        # Computation and Language
 cross_lists:
+  - cs.DB                      # Databases
   - cs.DC                      # Distributed, Parallel, and Cluster Computing
   - cs.CR                      # Cryptography and Security
 
