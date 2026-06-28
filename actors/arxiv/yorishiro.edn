@@ -3,7 +3,12 @@
                     :host "arxiv.org"
                     :not-official true}
  :yorishiro/surfaces
- [{:route/id :api
+ [{:route/id :local
+   :route/kind :local
+   :route/capabilities [:arxiv/advise-categories
+                        :arxiv/validate-package]
+   :route/prefer 1}
+  {:route/id :api
    :route/kind :api
    :route/capabilities [:arxiv/search]
    :route/prefer 10}
@@ -28,4 +33,3 @@
    :route/prefer 100}]
  :auth {:kind :vault
         :refs [:arxiv/user :arxiv/password]}}
-

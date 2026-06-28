@@ -36,8 +36,24 @@
           :op :arxiv/search}
          (ops/invoke {:op :arxiv/search} {:available-surfaces #{:computer}}))))
 
+(deftest local-category-advice-is-ready
+  (let [r (ops/invoke {:op :arxiv/advise-categories}
+                      {:available-surfaces #{:local}})]
+    (is (= :ready (:status r)))
+    (is (= :local (:route/id r)))
+    (is (= "cs.DB" (get-in r [:result :advice :primary])))
+    (is (= ["cs.DC" "cs.CR"] (get-in r [:result :advice :cross-lists])))))
+
+(deftest kotoba-package-validates
+  (let [r (ops/invoke {:op :arxiv/validate-package
+                       :package-edn "submissions/kotoba/package.edn"}
+                      {:available-surfaces #{:local}})]
+    (is (= :ready (:status r)))
+    (is (= :ok (get-in r [:result :status])))
+    (is (= [] (get-in r [:result :errors])))
+    (is (= "cs.DB" (get-in r [:result :categories :primary])))))
+
 (deftest dialogue-does-not-execute
   (let [r (dialogue/respond {:text "Can you submit this paper?"})]
     (is (= :ok (:status r)))
     (is (re-find #"requires human approval" (:text r)))))
-

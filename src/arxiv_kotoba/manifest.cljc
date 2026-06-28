@@ -38,7 +38,12 @@
 (def yorishiro
   {:yorishiro/id :yorishiro/arxiv
    :yorishiro/surfaces
-   [{:route/id :api
+   [{:route/id :local
+     :route/kind :local
+     :route/capabilities [:arxiv/advise-categories
+                          :arxiv/validate-package]
+     :route/prefer 1}
+    {:route/id :api
      :route/kind :api
      :route/capabilities [:arxiv/search]
      :route/prefer 10}
@@ -65,4 +70,3 @@
 (defn capability
   [op]
   (first (filter #(= op (:op %)) (:actor/capabilities actor))))
-
