@@ -25,3 +25,13 @@ This produces:
 
 Upload the source archive to arXiv. Final public submission still requires
 explicit human approval.
+
+## Current State
+
+Submission attempt on 2026-06-28 reached arXiv's start form, but `cs.DB` was
+blocked by arXiv endorsement policy:
+
+`You are not endorsed for this archive.`
+
+Next action: request endorsement for the Computer Science archive/category before
+resuming submission.

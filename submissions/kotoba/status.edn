@@ -1,0 +1,8 @@
+{:submission/id :kotoba
+ :submission/state :on-hold
+ :submission/hold-reason :endorsement-required
+ :submission/attempted-at "2026-06-28T22:22:00+09:00"
+ :submission/attempted-url "https://arxiv.org/submit/7761862/start"
+ :submission/attempted-primary-category "cs.DB"
+ :submission/server-message "You are not endorsed for this archive."
+ :submission/next-action :request-cs-db-endorsement}
