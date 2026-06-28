@@ -20,7 +20,9 @@
                       {:available-surfaces #{:browser}})]
     (is (= :hold (:status r)))
     (is (= :approval-required (:reason r)))
-    (is (= :public-submit (:risk r)))))
+    (is (= :public-submit (:risk r)))
+    (is (= :approval-required (get-in r [:alerts 0 :kind])))
+    (is (= :alert (get-in r [:alerts 0 :presentation])))))
 
 (deftest final-submit-routes-after-approval
   (let [r (ops/invoke {:op :arxiv/final-submit :submission-id "1234"}
@@ -75,6 +77,21 @@
     (is (= :endorsement-required (get-in r [:result :hold :reason])))
     (is (= "cs.DB" (get-in r [:result :hold :attempted-category])))
     (is (= :retry-with-endorsed-cs-cl (get-in r [:result :next-action])))))
+
+(deftest final-submit-approval-state-emits-alert
+  (let [r (ops/invoke {:op :arxiv/plan-submission
+                       :package-edn "submissions/kotoba/package.edn"
+                       :status-edn "test/fixtures/pending-final-approval-status.edn"}
+                      {:available-surfaces #{:local}})]
+    (is (= :ready (:status r)))
+    (is (= :human-final-submit-approval (get-in r [:result :next-action])))
+    (is (= :approval-required (get-in r [:result :alerts 0 :kind])))
+    (is (= :critical (get-in r [:result :alerts 0 :level])))
+    (is (= :awaiting-human-approval
+           (->> (get-in r [:result :steps])
+                (filter #(= :final-submit (:id %)))
+                first
+                :state)))))
 
 (deftest dialogue-does-not-execute
   (let [r (dialogue/respond {:text "Can you submit this paper?"})]

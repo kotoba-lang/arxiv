@@ -13,6 +13,10 @@ The arXiv actor models submission as a replayable workflow:
 4. stop for explicit human approval before final public submission
 5. record any server-side blocker and replan
 
+Approval gates are surfaced as structured alerts, not just prose. Runtime
+clients should render `:alerts` entries with `:presentation :alert` prominently
+before executing the gated operation.
+
 Endorsement failures are not generic errors. They are durable holds with the
 attempted category and arXiv server message preserved. The actor may retry with a
 truthful category that the account is allowed to submit to, or it may request

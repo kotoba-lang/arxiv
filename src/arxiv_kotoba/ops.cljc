@@ -23,6 +23,22 @@
             "Retry with the nearest endorsed primary category when the framing remains truthful."
             "Do not submit to an unrelated archive solely to bypass endorsement."]}])
 
+(defn approval-alert
+  [{:keys [op message]}]
+  {:kind :approval-required
+   :level :critical
+   :presentation :alert
+   :op op
+   :title "Human approval required"
+   :message (or message
+                "Final arXiv submission creates a public scholarly record and requires explicit human approval.")
+   :actions [{:id :approve
+              :label "Approve and continue"
+              :effect :set-approved-true}
+             {:id :cancel
+              :label "Cancel"
+              :effect :stop-workflow}]})
+
 #?(:clj
    (defn- read-edn-file [path]
      (edn/read-string (slurp path))))
@@ -118,6 +134,9 @@
            validation (validate-package {:package-edn package-path})
            state (submission-state status)
            hold? (endorsement-hold? status)
+           final-alert (approval-alert
+                        {:op :arxiv/final-submit
+                         :message "Review the arXiv draft, then approve only if the final public submission should proceed."})
            steps [{:id :validate-package
                    :op :arxiv/validate-package
                    :state (if (= :ok (:status validation)) :complete :blocked)}
@@ -142,7 +161,8 @@
                             (= :submitted state) :complete
                             (= :pending-human-final-submit state) :awaiting-human-approval
                             :else :pending)
-                   :requires [:human-approval]}]]
+                   :requires [:human-approval]
+                   :alert final-alert}]]
        {:status (cond
                   (not= :ok (:status validation)) :error
                   hold? :hold
@@ -163,6 +183,10 @@
                  :attempted-category (:submission/attempted-primary-category status)
                  :server-message (:submission/server-message status)
                  :fallbacks endorsement-fallbacks})
+        :alerts (cond-> []
+                  (and (= :pending-human-final-submit state)
+                       (not= :submitted state))
+                  (conj final-alert))
         :steps steps
         :validation validation}))
    :cljs
@@ -181,7 +205,8 @@
        :reason :approval-required
        :op op
        :risk (:risk cap)
-       :requires (:requires cap)}
+       :requires (:requires cap)
+       :alerts [(approval-alert {:op op})]}
       (if-let [route (routes/choose-route manifest/yorishiro op ctx)]
         {:status :ready
          :actor/id (:actor/id manifest/actor)
