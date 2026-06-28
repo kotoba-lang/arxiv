@@ -1,0 +1,13 @@
+{:skill/id :arxiv.create-submission
+ :skill/uses :yorishiro/arxiv
+ :skill/risk :external-draft
+ :skill/params [:paper-dir :title :abstract :categories]
+ :skill/routes
+ [{:route/id :browser-dom
+   :steps [{:do :assert :match {:text "Start new submission"}}
+           {:do :click :match {:text "Start new submission"}}
+           {:do :fill :match {:name "title"} :value [:param :title]}
+           {:do :fill :match {:name "abstract"} :value [:param :abstract]}
+           {:do :checkpoint :id :draft-created}
+           {:do :screenshot :as "arxiv-draft-created"}]}]}
+

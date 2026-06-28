@@ -1,0 +1,15 @@
+{:source "seed"
+ :not-official true
+ :human-approval-required
+ #{:arxiv/final-submit :arxiv/withdraw :arxiv/replace}
+ :automation-boundaries
+ [{:id :captcha
+   :policy :human-handoff
+   :text "Do not solve CAPTCHA or bot-detection challenges automatically."}
+  {:id :public-record
+   :policy :human-approval
+   :text "Final public submission requires explicit human approval."}
+  {:id :terms-unclear
+   :policy :stop
+   :text "Stop when the site's automation policy is unclear for the current action."}]}
+

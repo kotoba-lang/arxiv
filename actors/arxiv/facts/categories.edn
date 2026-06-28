@@ -1,0 +1,9 @@
+{:source "seed"
+ :categories
+ [{:id "cs.AI" :label "Artificial Intelligence"}
+  {:id "cs.CL" :label "Computation and Language"}
+  {:id "cs.LG" :label "Machine Learning"}
+  {:id "gr-qc" :label "General Relativity and Quantum Cosmology"}
+  {:id "hep-th" :label "High Energy Physics - Theory"}
+  {:id "math-ph" :label "Mathematical Physics"}]}
+

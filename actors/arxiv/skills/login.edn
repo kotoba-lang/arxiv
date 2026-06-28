@@ -1,0 +1,14 @@
+{:skill/id :arxiv.login
+ :skill/uses :yorishiro/arxiv
+ :skill/risk :external-auth
+ :skill/params []
+ :skill/routes
+ [{:route/id :browser-dom
+   :steps [{:do :navigate :url "https://arxiv.org/login"}
+           {:do :fill :match {:tag "input" :name "username"} :value {:secret :arxiv/user}}
+           {:do :fill :match {:tag "input" :name "password"} :value {:secret :arxiv/password}}
+           {:do :click :match {:tag "button" :text "Log in"}}
+           {:do :checkpoint :id :logged-in}]}
+  {:route/id :human-handoff
+   :steps [{:do :wait-human :prompt "Log in to arXiv, then resume."}]}]}
+

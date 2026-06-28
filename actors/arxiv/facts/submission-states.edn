@@ -1,0 +1,9 @@
+{:source "seed"
+ :states
+ [{:id :draft :terminal? false}
+  {:id :uploaded :terminal? false}
+  {:id :pending-human-final-submit :terminal? false}
+  {:id :submitted :terminal? true}
+  {:id :on-hold :terminal? false}
+  {:id :withdrawn :terminal? true}]}
+

@@ -1,0 +1,45 @@
+{:actor/id :actor/arxiv
+ :actor/kind :organism
+ :actor/domain :scholarly-publishing
+ :actor/name "arXiv yorishiro organism"
+ :actor/represents {:external/service "arxiv.org"
+                    :not-official true}
+ :actor/charter
+ "Assist agents and humans with arXiv search, package validation, submission preparation, replacement, withdrawal awareness, and policy-aware publication workflows."
+ :actor/interfaces {:dialogue arxiv-kotoba.dialogue/respond
+                    :functional arxiv-kotoba.ops/invoke}
+ :actor/knowledge
+ {:edn ["facts/categories.edn"
+        "facts/policies.edn"
+        "facts/submission-states.edn"]
+  :clj ["src/arxiv_kotoba/policy.cljc"
+        "src/arxiv_kotoba/ops.cljc"]
+  :ipfs ["snapshots/ipfs.edn"]}
+ :actor/capabilities
+ [{:op :arxiv/search
+   :risk :read-only
+   :skill :arxiv.search}
+  {:op :arxiv/advise-categories
+   :risk :read-only
+   :skill :arxiv.advise-categories}
+  {:op :arxiv/validate-package
+   :risk :read-only
+   :skill :arxiv.validate-package}
+  {:op :arxiv/login
+   :risk :external-auth
+   :skill :arxiv.login}
+  {:op :arxiv/create-submission
+   :risk :external-draft
+   :skill :arxiv.create-submission}
+  {:op :arxiv/upload-source
+   :risk :external-draft
+   :skill :arxiv.upload-source}
+  {:op :arxiv/final-submit
+   :risk :public-submit
+   :skill :arxiv.final-submit
+   :requires [:human-approval]}
+  {:op :arxiv/check-status
+   :risk :read-only
+   :skill :arxiv.check-status}]
+ :actor/yorishiro :yorishiro/arxiv}
+

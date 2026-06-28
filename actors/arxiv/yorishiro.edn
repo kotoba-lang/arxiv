@@ -1,0 +1,31 @@
+{:yorishiro/id :yorishiro/arxiv
+ :yorishiro/target {:kind :webservice
+                    :host "arxiv.org"
+                    :not-official true}
+ :yorishiro/surfaces
+ [{:route/id :api
+   :route/kind :api
+   :route/capabilities [:arxiv/search]
+   :route/prefer 10}
+  {:route/id :browser-dom
+   :route/kind :browser
+   :route/capabilities [:arxiv/login
+                        :arxiv/create-submission
+                        :arxiv/upload-source
+                        :arxiv/final-submit
+                        :arxiv/check-status]
+   :route/prefer 50}
+  {:route/id :computer
+   :route/kind :computer
+   :route/capabilities [:arxiv/login
+                        :arxiv/create-submission
+                        :arxiv/upload-source
+                        :arxiv/check-status]
+   :route/prefer 80}
+  {:route/id :human-handoff
+   :route/kind :human
+   :route/capabilities [:arxiv/final-submit]
+   :route/prefer 100}]
+ :auth {:kind :vault
+        :refs [:arxiv/user :arxiv/password]}}
+
