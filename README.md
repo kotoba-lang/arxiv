@@ -1,4 +1,4 @@
-# org-arxiv-kotoba
+# kotoba-lang/arxiv
 
 `arxiv` as an organism actor: a Clojure/EDN knowledge and capability repo for
 policy-aware arXiv search, package validation, submission preparation, and
@@ -28,6 +28,5 @@ test/arxiv_kotoba/*_test.cljc   contract tests
 ## Commands
 
 ```bash
-clojure -M:dev:test
+clojure -M:test
 ```
-
