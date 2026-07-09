@@ -1,0 +1,15 @@
+{:submission/id :sqrt-space-kv
+ :submission/state :pending-human-final-submit
+ :submission/arxiv-draft-id "7807285"
+ :submission/url "https://arxiv.org/submit/7807285/start"
+ :submission/user-page "https://arxiv.org/user/"
+ :submission/updated-at "2026-07-09"
+ :submission/primary-category "cs.LG"
+ :submission/cross-lists ["cs.CL" "cs.CC"]
+ :submission/notes
+ ["kotoba-lang/arxiv organism actor used for package + browser login (skill :arxiv.login)."
+  "Draft submission id 7807285 created under junkawasaki account."
+  "Start-form agreement modal (#accept-terms) requires scroll-to-enable; full automated walk is flaky — human should finish Start → Add Files → Process → Metadata → Preview."
+  "Source: submissions/sqrt-space-kv/build/sqrt_space_kv-arxiv-source.tar.gz"
+  "Final :arxiv/final-submit REQUIRES human approval (public scholarly record)."
+  "Email on profile is root@junkawasaki.com — arXiv warns to keep contact email valid."]}
