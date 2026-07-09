@@ -7,13 +7,21 @@
             #?(:clj [clojure.java.io :as io])))
 
 (def required-source-files
+  "Legacy kotoba package required files. Prefer package.edn :submission/source-dir listing."
   #{"kotoba.tex" "references.bib"})
 
 (def recommended-categories
+  "Default advice for the kotoba package. Other packages set categories in package.edn."
   {:primary "cs.CL"
    :cross-lists ["cs.DB" "cs.DC" "cs.CR"]
    :rationale
    "For arXiv submission, frame Kotoba as accountable memory infrastructure for language agents; the Datalog/datom database, distributed substrate, and security architecture are supporting technical contributions."})
+
+(def sqrt-space-kv-categories
+  {:primary "cs.LG"
+   :cross-lists ["cs.CL" "cs.CC"]
+   :rationale
+   "Williams √t-space transfer to LLM KV residency: primary ML systems; cross-list language + complexity."})
 
 (def endorsement-fallbacks
   [{:when {:server-message "You are not endorsed for this archive."}
@@ -61,54 +69,104 @@
    :endorsement-fallbacks endorsement-fallbacks})
 
 #?(:clj
+   (defn- tex-files-in [source-dir]
+     (->> (list-file-names source-dir)
+          (filter #(or (str/ends-with? % ".tex")
+                       (str/ends-with? % ".bib")
+                       (str/ends-with? % ".bbl")))
+          set)))
+
+#?(:clj
+   (defn- find-main-tex [source-dir]
+     (let [names (list-file-names source-dir)
+           texes (filter #(str/ends-with? % ".tex") names)]
+       (or (first (filter #(not (str/starts-with? % ".")) texes))
+           (first texes)))))
+
+#?(:clj
    (defn validate-package
+     "Validate an arXiv package.edn.
+
+     Generic rules (all packages):
+       - source-dir exists and contains ≥1 .tex
+       - abstract present in .tex (\\begin{abstract}) or abstract file
+       - primary category set
+       - final-submit gated by :human-approval
+
+     Legacy kotoba package additionally checks fixed title/categories."
      [{:keys [package-edn]}]
      (let [package-path (or package-edn "submissions/kotoba/package.edn")
            package (read-edn-file package-path)
            source-dir (:submission/source-dir package)
-           source-files (when (exists? source-dir) (list-file-names source-dir))
-           missing-source (if source-files
-                            (sort (remove source-files required-source-files))
-                            (sort required-source-files))
+           source-files (when (and source-dir (exists? source-dir))
+                          (list-file-names source-dir))
+           main-tex (when source-files (find-main-tex source-dir))
+           tex-path (when main-tex (str source-dir "/" main-tex))
+           tex (when (and tex-path (exists? tex-path)) (slurp tex-path))
            primary (:submission/primary-category package)
-           cross-lists (set (:submission/cross-lists package))
-           category-ok? (and (= "cs.CL" primary)
-                             (contains? cross-lists "cs.DB")
-                             (contains? cross-lists "cs.DC")
-                             (contains? cross-lists "cs.CR"))
-           tex-path (str source-dir "/kotoba.tex")
-           tex (when (exists? tex-path) (slurp tex-path))
-           title-ok? (boolean (and tex
-                                    (str/includes?
-                                     tex
-                                     "A Content-Addressed Datalog Substrate")))
-           abstract-ok? (boolean (and tex
-                                       (str/includes? tex "\\begin{abstract}")
-                                       (str/includes? tex "\\end{abstract}")))
+           cross-lists (:submission/cross-lists package)
+           pkg-id (:submission/id package)
+           kotoba? (or (= :kotoba pkg-id)
+                       (and tex (str/includes? (str tex) "Content-Addressed Datalog")))
+           abstract-ok? (boolean
+                         (or (and tex
+                                  (str/includes? tex "\\begin{abstract}")
+                                  (str/includes? tex "\\end{abstract}"))
+                             (let [af (:submission/abstract-file package)]
+                               (and af (exists? af)))))
+           title (:submission/title package)
+           title-ok? (boolean
+                      (or (and title (seq title))
+                          (and tex (str/includes? tex "\\title"))))
            final-gated? (= :human-approval
                            (:submission/final-submit-requires package))
+           category-ok? (if kotoba?
+                          (and (= "cs.CL" primary)
+                               (contains? (set cross-lists) "cs.DB")
+                               (contains? (set cross-lists) "cs.DC")
+                               (contains? (set cross-lists) "cs.CR"))
+                          (boolean (and primary (seq (str primary)))))
+           missing-source (cond
+                            (not source-dir)
+                            ["<no :submission/source-dir>"]
+                            (not (exists? source-dir))
+                            [(str source-dir " (missing)")]
+                            (nil? main-tex)
+                            [".tex"]
+                            kotoba?
+                            (sort (remove (or source-files #{}) required-source-files))
+                            :else [])
+           archive (:submission/source-archive package)
+           ;; archive is optional at validate-time (built by `make arxiv`); warn only
+           archive-missing? (and archive (not (exists? archive)))
            errors (cond-> []
                     (seq missing-source)
-                    (conj {:error :missing-source-files
-                           :files missing-source})
+                    (conj {:error :missing-source-files :files missing-source})
                     (not category-ok?)
                     (conj {:error :category-mismatch
-                           :expected recommended-categories
-                           :actual {:primary primary
-                                    :cross-lists (:submission/cross-lists package)}})
+                           :expected (if kotoba? recommended-categories :any-primary)
+                           :actual {:primary primary :cross-lists cross-lists}})
                     (not title-ok?)
-                    (conj {:error :title-not-found-in-tex})
+                    (conj {:error :title-missing})
                     (not abstract-ok?)
-                    (conj {:error :abstract-not-found-in-tex})
+                    (conj {:error :abstract-not-found})
                     (not final-gated?)
                     (conj {:error :final-submit-not-human-gated}))]
        {:status (if (seq errors) :error :ok)
         :package package-path
+        :package/id pkg-id
         :source-dir source-dir
-        :required-source-files (sort required-source-files)
-        :categories {:primary primary
-                     :cross-lists (:submission/cross-lists package)}
-        :errors errors}))
+        :main-tex main-tex
+        :tex-files (when source-files (sort (tex-files-in source-dir)))
+        :categories {:primary primary :cross-lists cross-lists}
+        :source-archive {:path archive :present? (not archive-missing?)}
+        :browser-runner "bin/arxiv-submit <package-dir> --op-item 'Arxiv - N24'"
+        :errors errors
+        :warnings (cond-> []
+                    archive-missing?
+                    (conj {:warning :source-archive-missing
+                           :path archive
+                           :hint "run `make arxiv` in the package dir"}))}))
    :cljs
    (defn validate-package
      [_request]

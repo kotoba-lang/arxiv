@@ -34,9 +34,18 @@
   {:op :arxiv/create-submission
    :risk :external-draft
    :skill :arxiv.create-submission}
+  {:op :arxiv/fill-start-form
+   :risk :external-draft
+   :skill :arxiv.fill-start-form}
   {:op :arxiv/upload-source
    :risk :external-draft
    :skill :arxiv.upload-source}
+  {:op :arxiv/run-browser-pipeline
+   :risk :external-draft
+   :skill :arxiv.run-browser-pipeline}
+  {:op :arxiv/request-endorsement
+   :risk :external-draft
+   :skill :arxiv.request-endorsement}
   {:op :arxiv/final-submit
    :risk :public-submit
    :skill :arxiv.final-submit
@@ -44,4 +53,11 @@
   {:op :arxiv/check-status
    :risk :read-only
    :skill :arxiv.check-status}]
+ :actor/browser-runner
+ {:module "arxiv_submit"
+  :bin "bin/arxiv-submit"
+  :credentials {:op-item "Arxiv - N24"
+                :op-vault "Private"
+                :account "junkawasaki-n24y"
+                :email "n24y001j@mail.cc.niigata-u.ac.jp"}}
  :actor/yorishiro :yorishiro/arxiv}
