@@ -1,0 +1,19 @@
+{:submission/id :sqrt-space-kv
+ :submission/title
+ "Simulating Autoregressive Memory with Square-Root Space: From Williams' Time-Space Theorem to Practical KV-Cache Residency"
+ :submission/authors
+ [{:name "Jun Kawasaki"
+   :affiliation "com-junkawasaki / etzhayyim / gftdcojp"}]
+ :submission/source-dir "submissions/sqrt-space-kv/source"
+ :submission/source-archive
+ "submissions/sqrt-space-kv/build/sqrt_space_kv-arxiv-source.tar.gz"
+ :submission/pdf "submissions/sqrt-space-kv/sqrt_space_kv.pdf"
+ :submission/primary-category "cs.LG"
+ :submission/cross-lists ["cs.CL" "cs.CC"]
+ :submission/license :cc-by-4.0
+ :submission/comments
+ "Systems/empirical note grounded in Williams STOC 2025. Code and benchmarks: https://github.com/gftdcojp/cloud-murakumo. Not a TM simulation of Transformers."
+ :submission/abstract-file "submissions/sqrt-space-kv/abstract.txt"
+ :submission/final-submit-requires :human-approval
+ :submission/actor :actor/arxiv
+ :submission/related-repos ["gftdcojp/cloud-murakumo" "kotoba-lang/arxiv"]}

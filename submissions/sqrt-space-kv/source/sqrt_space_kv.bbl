@@ -1,0 +1,21 @@
+\begin{thebibliography}{1}
+
+\bibitem{cookmertz2024}
+James Cook and Ian Mertz.
+\newblock Tree evaluation is in space {$O(\log n\cdot\log\log n)$}.
+\newblock In {\em Proceedings of the 56th Annual {ACM} Symposium on Theory of
+  Computing ({STOC})}, 2024.
+
+\bibitem{hpv1977}
+John Hopcroft, Wolfgang Paul, and Leslie Valiant.
+\newblock On time versus space.
+\newblock {\em Journal of the ACM}, 24(2):332--337, 1977.
+
+\bibitem{williams2025}
+R.~Ryan Williams.
+\newblock Simulating time with square-root space.
+\newblock In {\em Proceedings of the 57th Annual {ACM} Symposium on Theory of
+  Computing ({STOC})}, 2025.
+\newblock Best Paper Award. Also arXiv:2502.17779.
+
+\end{thebibliography}
