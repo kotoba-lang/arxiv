@@ -17,7 +17,11 @@ validate-package → login → create-submission (draft) → upload-source
 | License | CC BY 4.0 |
 | Source | `build/sqrt_space_kv-arxiv-source.tar.gz` |
 | PDF | `sqrt_space_kv.pdf` (via `make`) |
-| Draft id | **7807285** (created 2026-07-09 under account junkawasaki) |
+| **Account** | **junkawasaki-n24y** (`n24y001j@mail.cc.niigata-u.ac.jp`) |
+| 1Password | Private vault → **Arxiv - N24** |
+| Draft id | **7807366** (N24, 2026-07-09) |
+
+> Do **not** use the older `junkawasaki` / `root@junkawasaki.com` profile for this paper.
 
 ## Build
 
@@ -27,23 +31,31 @@ make all      # tectonic → PDF
 make arxiv    # tar.gz with .tex + .bib + .bbl
 ```
 
-## Resume at arXiv (human)
+## Resume at arXiv (human) — ~5 min
 
-1. Open https://arxiv.org/login → https://arxiv.org/user/
-2. Open draft **7807285** or **START NEW SUBMISSION** if expired.
-3. On **Start**: certify contact, scroll+accept Submittal Agreement modal,
-   author = self, license = CC BY, archive = Computer Science, class = Machine Learning (`cs.LG`).
-4. **Add Files**: upload `build/sqrt_space_kv-arxiv-source.tar.gz`.
-5. Process → Metadata (title/abstract/comments from `package.edn` / `abstract.txt`).
-6. Preview → **Submit** (this is `:arxiv/final-submit` — public record).
+1. Login as **junkawasaki-n24y** → https://arxiv.org/user/
+2. Open draft **7807366**  
+   https://arxiv.org/submit/7807366/start  
+   (or START NEW SUBMISSION if expired)
+3. **Start** form:
+   - ☑ certify contact (Niigata email is correct)
+   - ☑ open Submittal Agreement → **scroll to bottom** → Accept
+   - ○ I am submitting as an author
+   - ○ **CC BY 4.0**
+   - Archive **Computer Science** / Class **Machine Learning (`cs.LG`)**
+   - Continue
+4. **Add Files**: upload  
+   `build/sqrt_space_kv-arxiv-source.tar.gz`
+5. Process → Metadata (title/abstract from `package.edn` / `abstract.txt`;
+   cross-list `cs.CL`, `cs.CC`) → Preview
+6. **Submit** (public record; actor `:arxiv/final-submit` gate)
 
 ## Automation notes
 
-- `submit_browser.py` / `submit_v2.py`: Playwright scaffolding matching actor skills.
-- Agreement modal (`#accept-terms`) stays disabled until the agreement is scrolled;
-  headless automation is brittle — prefer human completion of the Start form.
-- Actor gate: `:arxiv/final-submit` **requires** `:human-approval` (skill
-  `actors/arxiv/skills/final-submit.edn`).
+- Login verified on **junkawasaki-n24y** with Niigata email on the user page.
+- Playwright can fill most Start fields, but agreement-modal + Continue is still
+  brittle headless — finish Start → Upload in the browser.
+- Actor gate: `:arxiv/final-submit` **requires** `:human-approval`.
 
 ## Related code
 

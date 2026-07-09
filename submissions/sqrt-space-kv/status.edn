@@ -1,15 +1,21 @@
-{:submission/id :sqrt-space-kv
- :submission/state :pending-human-final-submit
- :submission/arxiv-draft-id "7807285"
- :submission/url "https://arxiv.org/submit/7807285/start"
- :submission/user-page "https://arxiv.org/user/"
- :submission/updated-at "2026-07-09"
+{
+ :submission/id :sqrt-space-kv
+ :submission/state :pending-endorsement
+ :submission/arxiv-draft-id "7807366"
+ :submission/url "https://arxiv.org/auth/need-endorsement.php?tapir_dest=https%3A%2F%2Farxiv.org%2Fsubmit%2F7807366%2Fstart&category_id=cs.LG"
+ :submission/arxiv-account "junkawasaki-n24y"
  :submission/primary-category "cs.LG"
+ :submission/updated-at "2026-07-09"
  :submission/cross-lists ["cs.CL" "cs.CC"]
  :submission/notes
- ["kotoba-lang/arxiv organism actor used for package + browser login (skill :arxiv.login)."
-  "Draft submission id 7807285 created under junkawasaki account."
-  "Start-form agreement modal (#accept-terms) requires scroll-to-enable; full automated walk is flaky — human should finish Start → Add Files → Process → Metadata → Preview."
-  "Source: submissions/sqrt-space-kv/build/sqrt_space_kv-arxiv-source.tar.gz"
-  "Final :arxiv/final-submit REQUIRES human approval (public scholarly record)."
-  "Email on profile is root@junkawasaki.com — arXiv warns to keep contact email valid."]}
+ [  "browser runner steps: ['login', 'user-home', 'start', 'accept-terms', 'fill-start-form', 'pending-endorsement', 'request-endorsement-ui']"
+  "no error"
+  "source: /Users/junkawasaki/github/com-junkawasaki/orgs/kotoba-lang/arxiv/submissions/sqrt-space-kv/build/sqrt_space_kv-arxiv-source.tar.gz"
+  "final-submit requires APPROVE_FINAL=1 + human policy gate"
+  "endorsement-help: https://info.arxiv.org/help/endorsement"
+  "endorsement-request: https://arxiv.org/auth/need-endorsement.php?tapir_dest=https%3A%2F%2Farxiv.org%2Fsubmit%2F7807366%2Fstart&category_id=cs.LG"
+  "endorsement-category: cs.LG"
+  "endorsement-code: BGJTGV"
+  "Forward the arXiv endorsement email (with code) to a qualified endorser."
+  "Do not switch to an unrelated archive solely to bypass endorsement."]
+}

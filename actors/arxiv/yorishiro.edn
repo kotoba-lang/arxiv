@@ -13,24 +13,35 @@
    :route/kind :api
    :route/capabilities [:arxiv/search]
    :route/prefer 10}
-  {:route/id :browser-dom
-   :route/kind :browser
-   :route/capabilities [:arxiv/login
-                        :arxiv/create-submission
-                        :arxiv/upload-source
-                        :arxiv/final-submit
-                        :arxiv/check-status]
-   :route/prefer 50}
+  ;; Playwright multi-step pipeline (browser/arxiv_submit) preferred
   {:route/id :computer
    :route/kind :computer
    :route/capabilities [:arxiv/login
                         :arxiv/create-submission
+                        :arxiv/fill-start-form
                         :arxiv/upload-source
+                        :arxiv/run-browser-pipeline
+                        :arxiv/request-endorsement
                         :arxiv/check-status]
-   :route/prefer 80}
+   :route/prefer 20
+   :route/runner "bin/arxiv-submit"}
+  {:route/id :browser-dom
+   :route/kind :browser
+   :route/capabilities [:arxiv/login
+                        :arxiv/create-submission
+                        :arxiv/fill-start-form
+                        :arxiv/upload-source
+                        :arxiv/request-endorsement
+                        :arxiv/final-submit
+                        :arxiv/check-status]
+   :route/prefer 50}
   {:route/id :human-handoff
    :route/kind :human
    :route/capabilities [:arxiv/final-submit]
    :route/prefer 100}]
  :auth {:kind :vault
-        :refs [:arxiv/user :arxiv/password]}}
+        :refs [:arxiv/user :arxiv/password]
+        :default-op-item "Arxiv - N24"
+        :default-op-vault "Private"
+        :account "junkawasaki-n24y"
+        :email "n24y001j@mail.cc.niigata-u.ac.jp"}}

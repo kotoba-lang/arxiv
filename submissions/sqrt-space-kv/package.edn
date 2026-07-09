@@ -14,6 +14,7 @@
  :submission/comments
  "Systems/empirical note grounded in Williams STOC 2025. Code and benchmarks: https://github.com/gftdcojp/cloud-murakumo. Not a TM simulation of Transformers."
  :submission/abstract-file "submissions/sqrt-space-kv/abstract.txt"
+ ;; browser runner also resolves abstract.txt relative to package dir
  :submission/final-submit-requires :human-approval
  :submission/actor :actor/arxiv
  :submission/related-repos ["gftdcojp/cloud-murakumo" "kotoba-lang/arxiv"]}
