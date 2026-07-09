@@ -177,12 +177,27 @@ class ArxivSubmitFlow:
         self.step("start")
 
     def accept_terms_modal(self) -> None:
-        """Open Submittal Agreement modal, scroll to enable Accept, click it."""
+        """Open Submittal Agreement modal, scroll to enable Accept, click it.
+
+        Idempotent: if already checked (resume / prior probe), skip modal open.
+        Always accept via JS click — Playwright visibility checks fail when the
+        micromodal button exists in DOM but is not yet/no longer visible.
+        """
         page = self._page
         assert page
         box = page.locator('input[name="agree_terms_conditions"]')
         if not box.count():
             return
+        already = False
+        try:
+            already = box.is_checked()
+        except Exception:
+            already = False
+        if already:
+            print("[terms] already checked — skip modal", flush=True)
+            self.step("accept-terms")
+            return
+
         # Opening the checkbox triggers the modal (class openTerms)
         box.click(force=True)
         time.sleep(1.0)
@@ -199,21 +214,28 @@ class ArxivSubmitFlow:
             }"""
             )
             time.sleep(0.1)
-            btn = page.locator("#accept-terms")
-            if btn.count() and btn.is_enabled():
-                break
-        btn = page.locator("#accept-terms")
-        if btn.count():
-            # ensure enabled (arXiv enables after full scroll; force as last resort)
-            page.evaluate(
+            enabled = page.evaluate(
                 """() => {
               const b = document.querySelector('#accept-terms');
-              if (b) { b.disabled = false; b.classList.remove('disabled'); }
+              return !!(b && !b.disabled);
             }"""
             )
-            btn.click(force=True)
+            if enabled:
+                break
+        # JS click bypasses visibility (modal/layer quirks)
+        clicked = page.evaluate(
+            """() => {
+          const b = document.querySelector('#accept-terms');
+          if (!b) return false;
+          b.disabled = false;
+          b.classList.remove('disabled');
+          b.click();
+          return true;
+        }"""
+        )
+        if clicked:
             time.sleep(0.5)
-            print("[terms] Accept and return clicked", flush=True)
+            print("[terms] Accept and return clicked (js)", flush=True)
         # ensure checkbox stays checked
         page.evaluate(
             """() => {
@@ -556,6 +578,11 @@ class ArxivSubmitFlow:
         self._click_button("Upload files", "Upload Files", "Upload")
         page.wait_for_load_state("networkidle")
         time.sleep(3.0)
+        # v1.5: after unpack, "Check Files" advances to Review/Process
+        if self._click_button("Check Files", "Check files"):
+            page.wait_for_load_state("networkidle")
+            time.sleep(2.0)
+            print("[upload] Check Files clicked", flush=True)
         self.shot("06-uploaded")
         self.step("upload-source")
         self.result.url = page.url
@@ -584,17 +611,21 @@ class ArxivSubmitFlow:
                         print(f"[meta] skip {ex}", flush=True)
 
             if page.locator('input[type="file"]').count() and self.source_tar:
-                # re-upload if still on file page
-                try:
-                    page.locator('input[type="file"]').first.set_input_files(
-                        str(self.source_tar)
-                    )
-                    self._click_button("Upload files", "Upload Files", "Upload")
-                    time.sleep(3)
-                except Exception:
-                    pass
+                # re-upload if still on file page and no files listed yet
+                body = page.inner_text("body")
+                if "sqrt_space" not in body and "File Name" not in body:
+                    try:
+                        page.locator('input[type="file"]').first.set_input_files(
+                            str(self.source_tar)
+                        )
+                        self._click_button("Upload files", "Upload Files", "Upload")
+                        time.sleep(3)
+                    except Exception:
+                        pass
 
             moved = self._click_button(
+                "Check Files",
+                "Check files",
                 "Process",
                 "Save and continue",
                 "Continue",

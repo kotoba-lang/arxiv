@@ -12,7 +12,7 @@ validate-package → login → create-submission (draft) → upload-source
 | Field | Value |
 |-------|--------|
 | Title | Simulating Autoregressive Memory with Square-Root Space… |
-| Primary | `cs.LG` |
+| Primary | `cs.CL` (N24 endorsed; was `cs.LG` but account only unlocked for CL) |
 | Cross-list | `cs.CL`, `cs.CC` |
 | License | CC BY 4.0 |
 | Source | `build/sqrt_space_kv-arxiv-source.tar.gz` |
@@ -42,7 +42,8 @@ make arxiv    # tar.gz with .tex + .bib + .bbl
    - ☑ open Submittal Agreement → **scroll to bottom** → Accept
    - ○ I am submitting as an author
    - ○ **CC BY 4.0**
-   - Archive **Computer Science** / Class **Machine Learning (`cs.LG`)**
+   - Archive **Computer Science** / Class **Computation and Language (`cs.CL`)**
+     (cross-list intended: `cs.LG`, `cs.CC` if/when endorsed)
    - Continue
 4. **Add Files**: upload  
    `build/sqrt_space_kv-arxiv-source.tar.gz`

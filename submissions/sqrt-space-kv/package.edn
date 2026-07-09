@@ -8,11 +8,13 @@
  :submission/source-archive
  "submissions/sqrt-space-kv/build/sqrt_space_kv-arxiv-source.tar.gz"
  :submission/pdf "submissions/sqrt-space-kv/sqrt_space_kv.pdf"
- :submission/primary-category "cs.LG"
- :submission/cross-lists ["cs.CL" "cs.CC"]
+ ;; primary cs.CL: N24 account is endorsed for CL only (probe 2026-07-09).
+ ;; cs.LG/cs.DB/etc. still require fresh endorsement despite prior cs.DB papers.
+ :submission/primary-category "cs.CL"
+ :submission/cross-lists ["cs.LG" "cs.CC"]
  :submission/license :cc-by-4.0
  :submission/comments
- "Systems/empirical note grounded in Williams STOC 2025. Code and benchmarks: https://github.com/gftdcojp/cloud-murakumo. Not a TM simulation of Transformers."
+ "Language-model memory / KV residency systems note grounded in Williams STOC 2025. Primary cs.CL (autoregressive LM memory); intended cross-list cs.LG, cs.CC. Code: https://github.com/gftdcojp/cloud-murakumo. Not a TM simulation of Transformers."
  :submission/abstract-file "submissions/sqrt-space-kv/abstract.txt"
  ;; browser runner also resolves abstract.txt relative to package dir
  :submission/final-submit-requires :human-approval

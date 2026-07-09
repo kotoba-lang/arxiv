@@ -155,8 +155,15 @@ def main(argv: list[str] | None = None) -> int:
 
     # persist status.edn for actor plan-submission
     state = result.status
-    if state == "ok" and "pending-human-final-submit" in result.steps:
-        state = "pending-human-final-submit"
+    if state == "ok":
+        if "pending-human-final-submit" in result.steps:
+            state = "pending-human-final-submit"
+        elif "upload-source" in result.steps:
+            state = "uploaded"
+        elif "start-ok" in result.steps:
+            state = "start-complete"
+        else:
+            state = "draft"
     if state == "submitted":
         state = "submitted"
     if state == "pending-endorsement":
