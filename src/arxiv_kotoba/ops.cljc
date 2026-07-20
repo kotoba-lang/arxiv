@@ -48,8 +48,35 @@
               :effect :stop-workflow}]})
 
 #?(:clj
-   (defn- read-edn-file [path]
-     (edn/read-string (slurp path))))
+   (defn- unblob
+     "Best-effort inverse of edn-datomize.bb's attr-value: pr-str'd non-scalar
+     values come back as strings that read as coll?; try to read them back."
+     [v]
+     (if (string? v)
+       (try (let [parsed (edn/read-string v)]
+              (if (coll? parsed) parsed v))
+            (catch Exception _ v))
+       v)))
+
+#?(:clj
+   (defn- reconstitute-entity
+     "Inverse of edn-datomize.bb wrap-map-keep-ns: given a Datomic/Datascript
+     tx-data entity map, strip :db/id and unblob pr-str'd non-scalar values so
+     callers see the original flat map shape again."
+     [entity]
+     (into {} (map (fn [[k v]] [k (unblob v)])) (dissoc entity :db/id))))
+
+#?(:clj
+   (defn- read-edn-file
+     "Read an .edn file. Transparently unwraps the Datomic/Datascript
+     tx-data format ([{:db/id -1 ...}]) produced by edn-datomize.bb back into
+     the flat map shape callers expect, so package.edn/status.edn readers do
+     not need to change when those files are datomized."
+     [path]
+     (let [content (edn/read-string (slurp path))]
+       (if (and (vector? content) (map? (first content)) (contains? (first content) :db/id))
+         (reconstitute-entity (first content))
+         content))))
 
 #?(:clj
    (defn- exists? [path]
