@@ -587,63 +587,247 @@ class ArxivSubmitFlow:
         self.step("upload-source")
         self.result.url = page.url
 
-    def walk_process_and_metadata(self, max_steps: int = 12) -> None:
+    def _is_503(self) -> bool:
         page = self._page
         assert page
-        for i in range(max_steps):
-            print(f"[walk {i}] {page.url}", flush=True)
-            self.shot(f"walk-{i:02d}")
-            if "start" in page.url and page.locator("text=You must").count():
+        try:
+            t = page.inner_text("body")
+        except Exception:
+            return True
+        return "took too long to respond" in t.lower() or "503" in t[:80]
+
+    def _goto_retry(self, url: str, *, tries: int = 6) -> None:
+        page = self._page
+        assert page
+        for i in range(tries):
+            try:
+                page.goto(url, wait_until="domcontentloaded", timeout=90_000)
+                page.wait_for_load_state("networkidle")
+            except Exception as ex:
+                print(f"[retry] goto fail {i}: {ex}", flush=True)
+                time.sleep(3 + i * 2)
+                continue
+            if self._is_503():
+                print(f"[retry] 503 on {url} attempt {i+1}", flush=True)
+                time.sleep(4 + i * 3)
+                continue
+            return
+        raise RuntimeError(f"failed to load {url} after {tries} tries")
+
+    def _dismiss_modals(self) -> None:
+        """Confirm/Cancel dialogs that block the v1.5 file review flow."""
+        for lab in ["Confirm", "OK", "Yes"]:
+            if self._click_button(lab, timeout=1500):
+                time.sleep(0.5)
+                return
+
+    def _fill_metadata_fields(self) -> None:
+        page = self._page
+        assert page
+        for sel, val in [
+            ('textarea[name="title"], input[name="title"], #title', self.title),
+            ('textarea[name="abstract"], #abstract', self.abstract),
+            ('textarea[name="comments"], #comments', self.comments),
+        ]:
+            loc = page.locator(sel)
+            if loc.count() and val:
+                try:
+                    loc.first.fill(val)
+                    print(f"[meta] filled {sel.split(',')[0][:32]}", flush=True)
+                except Exception as ex:
+                    print(f"[meta] skip {ex}", flush=True)
+
+    def _stage_name(self, url: str) -> str:
+        u = url.lower()
+        if "preview" in u:
+            return "preview"
+        if "metadata" in u:
+            return "metadata"
+        if "process" in u:
+            return "process"
+        if "reviewfiles" in u or "review" in u:
+            return "review"
+        if "checkfiles" in u:
+            return "checkfiles"
+        if "addfiles" in u or "/file" in u:
+            return "addfiles"
+        if "start" in u:
+            return "start"
+        return "unknown"
+
+    def walk_process_and_metadata(self, max_steps: int = 24) -> None:
+        """Linear v1.5 walk: addfiles → check → review → process → metadata → preview.
+
+        Does NOT click the public Submit (final_submit + APPROVE_FINAL).
+        """
+        page = self._page
+        assert page
+        did = self.result.draft_id or self._extract_draft_id(page.url)
+        if not did:
+            raise RuntimeError("no draft_id for walk")
+
+        # Prefer resuming at the furthest unlocked stage rather than always
+        # rewinding to addfiles (which re-triggers Check Files loops).
+        for st in ("preview", "metadata", "process", "reviewfiles", "addfiles"):
+            self._goto_retry(f"https://arxiv.org/submit/{did}/{st}")
+            if self._is_503():
+                continue
+            # later stages redirect to addfiles if not yet unlocked
+            if st == "addfiles" or st in page.url or (
+                st == "reviewfiles" and "review" in page.url
+            ):
+                # if we asked for process/metadata/preview but got addfiles, continue searching
+                if st != "addfiles" and "addfiles" in page.url:
+                    continue
+                print(f"[walk] resume at {page.url}", flush=True)
                 break
 
-            # metadata fields when present
-            for sel, val in [
-                ('textarea[name="title"], input[name="title"], #title', self.title),
-                ('textarea[name="abstract"], #abstract', self.abstract),
-                ('textarea[name="comments"], #comments', self.comments),
-            ]:
-                loc = page.locator(sel)
-                if loc.count() and val:
-                    try:
-                        loc.first.fill(val)
-                        print(f"[meta] {sel[:28]}", flush=True)
-                    except Exception as ex:
-                        print(f"[meta] skip {ex}", flush=True)
+        for i in range(max_steps):
+            if self._is_503():
+                print(f"[walk {i}] 503 — reload", flush=True)
+                time.sleep(5)
+                page.reload(wait_until="domcontentloaded")
+                time.sleep(2)
+                continue
 
-            if page.locator('input[type="file"]').count() and self.source_tar:
-                # re-upload if still on file page and no files listed yet
+            url = page.url
+            stage = self._stage_name(url)
+            print(f"[walk {i}] stage={stage} url={url}", flush=True)
+            self.shot(f"walk-{i:02d}")
+            self.result.url = url
+            self.result.draft_id = self._extract_draft_id(url) or did
+
+            # modal
+            if page.locator("text=Confirm File Deletion").count():
+                self._dismiss_modals()
+                page.wait_for_load_state("networkidle")
+                time.sleep(1)
+                continue
+
+            if stage == "preview":
+                print("[walk] reached preview", flush=True)
+                break
+
+            if stage in ("addfiles", "checkfiles"):
                 body = page.inner_text("body")
-                if "sqrt_space" not in body and "File Name" not in body:
-                    try:
-                        page.locator('input[type="file"]').first.set_input_files(
-                            str(self.source_tar)
-                        )
-                        self._click_button("Upload files", "Upload Files", "Upload")
-                        time.sleep(3)
-                    except Exception:
-                        pass
+                # only (re)upload if files not already listed
+                if (
+                    "sqrt_space" not in body
+                    and self.source_tar
+                    and self.source_tar.exists()
+                    and page.locator('input[type="file"]').count()
+                ):
+                    page.locator('input[type="file"]').first.set_input_files(
+                        str(self.source_tar)
+                    )
+                    self._click_button("Upload", "Upload files", "Upload Files")
+                    page.wait_for_load_state("networkidle")
+                    time.sleep(3)
+                self._click_button("Check Files", "Check files", timeout=8000)
+                page.wait_for_load_state("networkidle")
+                time.sleep(2)
+                # Check Files often keeps us on addfiles until scan finishes —
+                # force the next stage URL which is the real gate.
+                if self._stage_name(page.url) in ("addfiles", "checkfiles", "unknown"):
+                    self._goto_retry(f"https://arxiv.org/submit/{did}/reviewfiles")
+                    time.sleep(1)
+                continue
 
-            moved = self._click_button(
-                "Check Files",
-                "Check files",
-                "Process",
-                "Save and continue",
-                "Continue",
-                "Next",
-                "Preview",
-                "Save",
-            )
-            if moved:
+            if stage == "review":
+                # Keep .bbl for reliable bibliography
+                page.evaluate(
+                    """() => {
+                  document.querySelectorAll('tr').forEach(tr => {
+                    if (/\\.bbl/i.test(tr.innerText)) {
+                      tr.querySelectorAll('input[type=checkbox]').forEach(c => {
+                        c.checked = false;
+                      });
+                    }
+                  });
+                }"""
+                )
+                if not self._click_button(
+                    "Accept and Continue", "Accept and continue", timeout=10000
+                ):
+                    page.evaluate(
+                        """() => {
+                      const els = [...document.querySelectorAll('button,a,input')];
+                      const t = els.find(e => /Accept and Continue/i.test(
+                        (e.innerText||e.value||'')));
+                      if (t) t.click();
+                    }"""
+                    )
                 page.wait_for_load_state("networkidle")
                 time.sleep(1.5)
-                self.result.url = page.url
-                did = self._extract_draft_id(page.url)
-                if did:
-                    self.result.draft_id = did
+                self._dismiss_modals()
+                # Accept kicks off compile → process
+                for _ in range(30):
+                    if self._is_503():
+                        time.sleep(5)
+                        page.reload()
+                        continue
+                    if "process" in page.url or "metadata" in page.url:
+                        break
+                    # still reviewing?
+                    if page.locator("text=Confirm File Deletion").count():
+                        self._dismiss_modals()
+                    time.sleep(2)
+                continue
+
+            if stage == "process":
+                for _ in range(45):
+                    if self._is_503():
+                        time.sleep(5)
+                        page.reload()
+                        continue
+                    body = page.inner_text("body")
+                    if "successfully processed" in body.lower():
+                        break
+                    if page.locator(
+                        'input[type="submit"][value="Continue"], button:has-text("Continue")'
+                    ).count():
+                        break
+                    time.sleep(2)
+                self.shot(f"walk-{i:02d}-process")
+                body = page.inner_text("body")
+                if re.search(r"Emergency stop|! LaTeX Error|Fatal", body):
+                    print("[process] hard compile errors present", flush=True)
+                self._click_button("Continue", "Save and continue", "Next")
+                page.wait_for_load_state("networkidle")
+                time.sleep(2)
+                continue
+
+            if stage == "metadata":
+                self._fill_metadata_fields()
+                time.sleep(0.3)
+                self._click_button("Continue", "Save and continue", "Next", "Save")
+                page.wait_for_load_state("networkidle")
+                time.sleep(1.5)
+                continue
+
+            # unknown: try progressive nav buttons, never public Submit
+            moved = self._click_button(
+                "Accept and Continue",
+                "Check Files",
+                "Continue",
+                "Next",
+                "Save and continue",
+            )
+            if not moved:
+                # try stage URLs in order
+                for st in ("reviewfiles", "process", "metadata", "preview"):
+                    self._goto_retry(f"https://arxiv.org/submit/{did}/{st}")
+                    if self._stage_name(page.url) == st.replace("files", "") or st in page.url:
+                        break
+                else:
+                    break
             else:
-                break
+                page.wait_for_load_state("networkidle")
+                time.sleep(1.5)
+
         self.step("process-metadata-walk")
         self.shot("07-after-walk")
+        print(f"[walk-done] {page.url}", flush=True)
 
     def final_submit(self) -> None:
         page = self._page
@@ -657,15 +841,79 @@ class ArxivSubmitFlow:
                 flush=True,
             )
             return
+
+        did = self.result.draft_id or self._extract_draft_id(page.url)
+        if "preview" not in page.url and did:
+            self._goto_retry(f"https://arxiv.org/submit/{did}/preview")
+
         self.shot("08-before-final")
-        if self._click_button("Submit", "Submit article", "Confirm"):
+        stage = self._stage_name(page.url)
+        if stage != "preview":
+            print(
+                f"[final] not on preview (stage={stage} url={page.url}); abort",
+                flush=True,
+            )
+            self.step("final-submit-wrong-stage")
+            self.result.status = "pending-human-final-submit"
+            self.result.error = f"final submit aborted: still at {page.url}"
+            self.shot("09-after-final")
+            self.result.url = page.url
+            return
+
+        clicked = False
+        # On preview the public action is usually "Submit" as submit input
+        for lab in [
+            "Submit",
+            "Submit article",
+            "Submit this paper",
+            "Confirm and submit",
+        ]:
+            if self._click_button(lab, timeout=5000):
+                clicked = True
+                break
+        if not clicked:
+            # last resort: any submit whose value mentions Submit
+            inp = page.locator('input[type="submit"]')
+            for i in range(inp.count()):
+                val = (inp.nth(i).get_attribute("value") or "").lower()
+                if "submit" in val and "search" not in val:
+                    try:
+                        inp.nth(i).click(timeout=5000)
+                        clicked = True
+                        break
+                    except Exception:
+                        pass
+
+        if clicked:
             page.wait_for_load_state("networkidle")
             time.sleep(2)
-            self.step("final-submit")
-            self.result.status = "submitted"
+            self.result.url = page.url
+            body = page.inner_text("body")
+            ok = any(
+                k in body.lower()
+                for k in (
+                    "submission received",
+                    "has been submitted",
+                    "thank you",
+                    "paper password",
+                    "your article will",
+                )
+            ) or (
+                "user" in page.url
+                and "submit/" not in page.url
+            )
+            if ok:
+                self.step("final-submit")
+                self.result.status = "submitted"
+                print(f"[final] SUBMITTED url={page.url}", flush=True)
+            else:
+                self.step("final-submit-unclear")
+                self.result.status = "pending-human-final-submit"
+                print(f"[final] click done, unclear: {page.url}", flush=True)
         else:
             self.step("final-submit-button-not-found")
             self.result.status = "pending-human-final-submit"
+            print("[final] Submit button not found on preview", flush=True)
         self.shot("09-after-final")
         self.result.url = page.url
 
