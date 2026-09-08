@@ -1,11 +1,11 @@
 (ns arxiv-kotoba.dialogue
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (defn respond
   "Small deterministic dialogue seed. A model-backed host can replace this, but
   the actor always keeps the same boundary: dialogue explains, ops executes."
   [{:keys [text]}]
-  (let [t (str/lower-case (str text))]
+  (let [t (str/lower (str text))]
     (cond
       (str/includes? t "category")
       {:status :ok
