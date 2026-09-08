@@ -1,6 +1,6 @@
 (ns arxiv-kotoba.ops
   (:require [clojure.edn :as edn]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [arxiv-kotoba.manifest :as manifest]
             [arxiv-kotoba.policy :as policy]
             [arxiv-kotoba.routes :as routes]
