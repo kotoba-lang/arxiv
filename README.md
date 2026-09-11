@@ -27,13 +27,13 @@ submissions/<id>/               package.edn + LaTeX source + status.edn
 
 ```bash
 # pure contract tests
-clojure -M:test
+kbb -M:test
 
 # package unit tests (Python)
 PYTHONPATH=browser python test/arxiv_submit/test_package.py
 
 # validate package (from repo root)
-clojure -M -e "(require '[arxiv-kotoba.ops :as o]) (prn (o/validate-package {:package-edn \"submissions/sqrt-space-kv/package.edn\"}))"
+kbb -M -e "(require '[arxiv-kotoba.ops :as o]) (prn (o/validate-package {:package-edn \"submissions/sqrt-space-kv/package.edn\"}))"
 
 # browser pipeline (N24 account)
 bin/arxiv-submit submissions/sqrt-space-kv \
