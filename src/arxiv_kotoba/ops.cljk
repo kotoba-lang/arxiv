@@ -1,5 +1,5 @@
 (ns arxiv-kotoba.ops
-  (:require [clojure.edn :as edn]
+  (:require [kotoba.lang.edn :as edn]
             [kotoba.lang.text :as str]
             [arxiv-kotoba.manifest :as manifest]
             [arxiv-kotoba.policy :as policy]
