@@ -4,7 +4,7 @@
             [arxiv-kotoba.manifest :as manifest]
             [arxiv-kotoba.policy :as policy]
             [arxiv-kotoba.routes :as routes]
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 (def required-source-files
   "Legacy kotoba package required files. Prefer package.edn :submission/source-dir listing."
@@ -80,13 +80,13 @@
 
 #?(:clj
    (defn- exists? [path]
-     (.exists (io/file path))))
+     (io/exists? (io/file path))))
 
 #?(:clj
    (defn- list-file-names [dir]
-     (->> (.listFiles (io/file dir))
-          (filter #(.isFile %))
-          (map #(.getName %))
+     (->> (io/list-files (io/file dir))
+          (filter #(io/file? %))
+          (map #(io/file-name %))
           set)))
 
 (defn advise-categories
